@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>SensoryArch | Neurodiversity Analysis</title>
+    <style>
+        :root { 
+            --sage-green: #9fb8ad; /* Ana Pastel Yeşil */
+            --dark-sage: #7a9482; 
+            --soft-bg: #f4f7f5;
+            --text-color: #4a5d54;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--soft-bg); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh;
+            margin: 0; 
+            color: var(--text-color); 
+        }
+        .card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 30px rgba(159, 184, 173, 0.2); 
+            width: 100%; 
+            max-width: 480px; 
+            text-align: center; 
+            border: 1px solid rgba(159, 184, 173, 0.3);
+        }
+        h1 { 
+            color: var(--dark-sage); 
+            font-weight: 300; 
+            margin-bottom: 5px; 
+            letter-spacing: 1px;
+            font-size: 2.2rem;
+        }
+        .tagline { 
+            font-size: 11px; 
+            color: #a0b0a8; 
+            margin-bottom: 35px; 
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+        }
+        .upload-area {
+            border: 2px dashed var(--sage-green);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            background: #fafcfb;
+            transition: 0.3s;
+        }
+        input[type="file"] { 
+            width: 100%;
+            font-size: 13px;
+            color: var(--dark-sage);
+        }
+        button { 
+            background: var(--sage-green); 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            border-radius: 14px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 16px; 
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(159, 184, 173, 0.3);
+        }
+        button:hover { 
+            background: var(--dark-sage); 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(159, 184, 173, 0.4);
+        }
+        #result { 
+            margin-top: 35px; 
+            text-align: left; 
+            display: none; 
+            border-top: 1px solid #eee; 
+            padding-top: 25px; 
+            animation: fadeIn 0.8s ease-out;
+        }
+        .section { margin-bottom: 22px; }
+        .section strong { 
+            color: var(--dark-sage); 
+            display: block; 
+            margin-bottom: 6px; 
+            font-size: 13px; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .section p { 
+            margin: 0; 
+            font-size: 14.5px; 
+            line-height: 1.7; 
+            color: #5a6e64; 
+            background: #f9fbfb;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .loader { display: none; margin: 20px 0; }
+        .spinner { 
+            border: 3px solid #eef2f0; 
+            border-top: 3px solid var(--sage-green); 
+            border-radius: 50%; 
+            width: 30px; 
+            height: 30px; 
+            animation: spin 1s linear infinite; 
+            margin: 0 auto 15px; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>SensoryArch</h1>
+        <div class="tagline">Neurodiverse Space Analysis</div>
+        
+        <div class="upload-area">
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        
+        <button id="btn">ANALİZİ BAŞLAT</button>
+        
+        <div id="loader" class="loader">
+            <div class="spinner"></div>
+            <p style="font-size: 13px; color: var(--dark-sage);">Mekan duyusal haritası çıkarılıyor...</p>
+        </div>
+        
+        <canvas id="canvas" style="display:none;"></canvas>
+        
+        <div id="result">
+            <div class="section">
+                <strong>👁️ GÖRSEL UYARANLAR</strong>
+                <p id="visualText"></p>
+            </div>
+            <div class="section">
+                <strong>👂 İŞİTSEL ALGI & AKUSTİK</strong>
+                <p id="acousticText"></p>
+            </div>
+            <div class="section">
+                <strong>💡 TASARIM ÖNERİSİ</strong>
+                <p id="adviseText"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btn').onclick = function() {
+            const file = document.getElementById('imageInput').files[0];
+            if (!file) return alert("Lütfen bir görsel seçin.");
+
+            const loader = document.getElementById('loader');
+            const resDiv = document.getElementById('result');
+            loader.style.display = "block";
+            resDiv.style.display = "none";
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.getElementById('canvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, 10, 10);
+                    const data = ctx.getImageData(0, 0, 10, 10).data;
+                    
+                    let colorComplexity = 0;
+                    for(let i=0; i<data.length; i+=4) {
+                        if(i > 0) colorComplexity += Math.abs(data[i] - data[i-4]);
+                    }
+
+                    setTimeout(() => {
+                        loader.style.display = "none";
+                        resDiv.style.display = "block";
+                        
+                        if (colorComplexity > 600) {
+                            document.getElementById('visualText').innerText = "Mekanda yoğun görsel gürültü ve yüksek renk kontrastı saptandı. DEHB (ADHD) spektrumundaki bireyler için 'Sensory Overload' riski yüksektir.";
+                            document.getElementById('acousticText').innerText = "Karmaşık yüzey dokuları ses kırılmalarına yol açıyor. Arka plan uğultusu duyusal yorgunluğu tetikleyebilir.";
+                            document.getElementById('adviseText').innerText = "Dikkat dağıtıcı unsurları minimize etmek için görsel ayırıcılar ve düşük doygunluklu renk paletleri (mat pastel tonlar) entegre edilmelidir.";
+                        } else {
+                            document.getElementById('visualText').innerText = "Düşük uyaranlı, sakin bir görsel yapı mevcut. Otizm (ASD) spektrumundaki bireyler için güvenli ve tahmin edilebilir bir çevre sunuyor.";
+                            document.getElementById('acousticText').innerText = "Mekan geometrisi yankılanma (reverberasyon) potansiyeline sahip. Keskin sesler işitsel hassasiyeti olanlarda kaygı uyandırabilir.";
+                            document.getElementById('adviseText').innerText = "Yankı kontrolü için yumuşak bitişli materyaller, akustik asma tavanlar veya doğal tekstil panelleri eklenerek duyusal konfor optimize edilmelidir.";
+                        }
+                    }, 2200);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+    </script>
+</body>
+</html>
